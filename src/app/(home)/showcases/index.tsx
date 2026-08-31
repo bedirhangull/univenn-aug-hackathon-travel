@@ -94,6 +94,50 @@ const data = [
   },
   {
     imageLight:
+      'https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/images/heroui-native-example/showcase-paywall.png',
+    imageDark:
+      'https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/images/heroui-native-example/showcase-paywall.png',
+    title: 'First Paywall',
+    description:
+      'Social proof led paywall with a rotating review carousel, laurel stats and a free trial switch.',
+    href: '/showcases/first-paywall',
+    components: [
+      { name: 'Switch', href: '/components/switch' },
+      { name: 'Surface', href: '/components/surface' },
+      { name: 'Button', href: '/components/button' },
+    ],
+  },
+  {
+    imageLight:
+      'https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/images/heroui-native-example/showcase-paywall.png',
+    imageDark:
+      'https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/images/heroui-native-example/showcase-paywall.png',
+    title: 'Second Paywall',
+    description:
+      'Trial explainer paywall with a timeline stepper and a collapsible plan selector.',
+    href: '/showcases/second-paywall',
+    components: [
+      { name: 'RadioGroup', href: '/components/radio-group' },
+      { name: 'Surface', href: '/components/surface' },
+      { name: 'Button', href: '/components/button' },
+    ],
+  },
+  {
+    imageLight:
+      'https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/images/heroui-native-example/showcase-paywall.png',
+    imageDark:
+      'https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/images/heroui-native-example/showcase-paywall.png',
+    title: 'Limited Paywall',
+    description:
+      'Urgency driven one time offer with a live countdown, award header and stacked member avatars.',
+    href: '/showcases/limited-paywall',
+    components: [
+      { name: 'Surface', href: '/components/surface' },
+      { name: 'Button', href: '/components/button' },
+    ],
+  },
+  {
+    imageLight:
       'https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/images/heroui-native-example/showcases-onboarding-light-1.png',
     imageDark:
       'https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/images/heroui-native-example/showcases-onboarding-dark-1.png',
@@ -104,6 +148,23 @@ const data = [
       { name: 'Button', href: '/components/button' },
       { name: 'Card', href: '/components/card' },
       { name: 'Separator', href: '/components/separator' },
+    ],
+  },
+  {
+    imageLight:
+      'https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/images/heroui-native-example/showcases-onboarding-light-1.png',
+    imageDark:
+      'https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/images/heroui-native-example/showcases-onboarding-dark-1.png',
+    title: 'Travel Onboarding',
+    description:
+      'Three question intake that builds a traveller profile as you answer, covering who is going, access needs and food.',
+    href: '/showcases/travel-onboarding',
+    components: [
+      { name: 'TagGroup', href: '/components/tag-group' },
+      { name: 'ControlField', href: '/components/control-field' },
+      { name: 'Checkbox', href: '/components/checkbox' },
+      { name: 'Chip', href: '/components/chip' },
+      { name: 'Button', href: '/components/button' },
     ],
   },
 ];
