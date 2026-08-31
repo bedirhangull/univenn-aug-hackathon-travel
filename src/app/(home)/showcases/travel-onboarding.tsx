@@ -1,5 +1,5 @@
 import Feather from '@expo/vector-icons/Feather';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   Button,
   Checkbox,
@@ -28,13 +28,16 @@ import {
   ACCESS_NEEDS,
   ALLERGIES,
   COMPANIONS,
+  constraintLabels,
   DIETS,
   KID_AGES,
+  labelFor,
   type Option,
   type OptionId,
   railLabelFor,
   resolveSelection,
 } from '../../../components/showcases/travel-onboarding/questions';
+import { useTravelSession } from '../../../contexts/travel-session-context';
 import { trackEvent } from '../../../helpers/utils/track-event';
 
 const StyledFeather = withUniwind(Feather);
@@ -56,6 +59,16 @@ const chipsFor = (
 
 export default function TravelOnboarding() {
   const router = useRouter();
+
+  /**
+   * `?flow=ritmo` means this is the real onboarding on the way to the planner,
+   * so finishing hands off to the chat screen. Without it the screen stays what
+   * it was — a showcase you back out of.
+   */
+  const { flow } = useLocalSearchParams<{ flow?: string }>();
+  const isRitmoFlow = flow === 'ritmo';
+
+  const { setProfile } = useTravelSession();
 
   const reducedMotion = useReducedMotion();
 
@@ -129,8 +142,26 @@ export default function TravelOnboarding() {
 
   const goNext = () => {
     if (step === TOTAL_STEPS) {
-      trackEvent('travel_onboarding_finished');
-      router.back();
+      // The answers become the profile every later plan is built against.
+      // "None of these" answers drop out here — they mean no constraint.
+      setProfile({
+        companion: companion ? labelFor(COMPANIONS, companion) : undefined,
+        kidAges: isFamily ? constraintLabels(KID_AGES, kidAges) : [],
+        accessNeeds: constraintLabels(ACCESS_NEEDS, access),
+        allergies: constraintLabels(ALLERGIES, allergies),
+        diets: constraintLabels(DIETS, diets),
+        completedAt: Date.now(),
+      });
+
+      trackEvent('travel_onboarding_finished', { flow: flow ?? 'showcase' });
+
+      if (isRitmoFlow) {
+        // replace, not push: the flow is done, so going back from the planner
+        // should not walk the traveller through the questions again.
+        router.replace('/travel');
+      } else {
+        router.back();
+      }
       return;
     }
 
@@ -140,7 +171,12 @@ export default function TravelOnboarding() {
 
   const canContinue = step !== 0 || companion !== null;
 
-  const ctaLabel = ['Continue', 'Continue', 'Build my profile', 'Start exploring'][step];
+  const ctaLabel = [
+    'Continue',
+    'Continue',
+    'Build my profile',
+    isRitmoFlow ? 'Start planning' : 'Start exploring',
+  ][step];
 
   return (
     <PageProvider>

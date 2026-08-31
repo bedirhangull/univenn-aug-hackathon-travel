@@ -1,4 +1,5 @@
 import * as Haptics from 'expo-haptics';
+import { useRouter } from 'expo-router';
 import { Button, Chip, Separator, Surface, cn } from 'heroui-native';
 import { useCallback, useEffect, useState } from 'react';
 import { Linking, Pressable, View } from 'react-native';
@@ -11,6 +12,7 @@ import Animated, {
 import { useMountProgress } from '../../helpers/hooks/use-mount-progress';
 import { ENTER_OFFSET, SPRING, STAGGER_MS } from '../../helpers/travel/motion';
 import type { PlaceKind, PlanDay, PlanPlace, TravelPlan } from '../../helpers/travel/types';
+import { CROWD_COLOR, CROWD_LABEL } from '../../helpers/travel/crowd';
 import { timestampToSeconds, watchUrlAt } from '../../helpers/travel/youtube';
 import { AppText } from '../app-text';
 import { DisplayText, Icon } from './display-text';
@@ -50,21 +52,38 @@ const PlaceRow = ({ place, videoId }: PlaceRowProps) => {
       </View>
 
       <View className="flex-1">
-        <View className="flex-row flex-wrap items-baseline gap-x-2">
-          <AppText
-            className="text-[15px] font-medium text-foreground"
-            maxFontSizeMultiplier={1.3}
-          >
-            {place.name}
-          </AppText>
-          {place.timeHint && (
+        <View className="flex-row items-start justify-between gap-2">
+          <View className="flex-1 flex-row flex-wrap items-baseline gap-x-2">
             <AppText
-              className="text-[12px] text-muted"
+              className="text-[15px] font-medium text-foreground"
+              maxFontSizeMultiplier={1.3}
+            >
+              {place.name}
+            </AppText>
+            {place.timeHint && (
+              <AppText
+                className="text-[12px] text-muted"
+                maxFontSizeMultiplier={1.2}
+              >
+                {place.timeHint}
+              </AppText>
+            )}
+          </View>
+
+          {/* How busy the stop is, on every stop. It is the whole reason the
+              plan looks the way it does, so it is not an optional detail. */}
+          <View className="mt-0.5 flex-row items-center gap-1">
+            <View
+              className="size-2 rounded-full"
+              style={{ backgroundColor: CROWD_COLOR[place.crowdLevel] }}
+            />
+            <AppText
+              className="text-[11px] font-medium text-muted"
               maxFontSizeMultiplier={1.2}
             >
-              {place.timeHint}
+              {CROWD_LABEL[place.crowdLevel]}
             </AppText>
-          )}
+          </View>
         </View>
 
         {place.note && (
@@ -74,6 +93,18 @@ const PlaceRow = ({ place, videoId }: PlaceRowProps) => {
           >
             {place.note}
           </AppText>
+        )}
+
+        {place.alternativeTo && (
+          <View className="mt-1.5 flex-row items-center gap-1.5">
+            <Icon name="repeat" size={10} className="text-accent" />
+            <AppText
+              className="flex-1 text-[11.5px] text-accent"
+              maxFontSizeMultiplier={1.2}
+            >
+              {`Instead of ${place.alternativeTo}`}
+            </AppText>
+          </View>
         )}
 
         {place.sourceTimestamp && (
@@ -240,6 +271,7 @@ type ItineraryCardProps = {
 
 export const ItineraryCard = ({ plan, onReset }: ItineraryCardProps) => {
   const enter = useMountProgress();
+  const router = useRouter();
   const [expandedDays, setExpandedDays] = useState<number[]>([1]);
 
   const toggleDay = useCallback((day: number) => {
@@ -264,6 +296,11 @@ export const ItineraryCard = ({ plan, onReset }: ItineraryCardProps) => {
   const openVideo = useCallback(() => {
     Linking.openURL(plan.source.url).catch(() => {});
   }, [plan.source.url]);
+
+  const openMap = useCallback(() => {
+    Haptics.selectionAsync().catch(() => {});
+    router.push('/travel/map');
+  }, [router]);
 
   return (
     <AnimatedView
@@ -320,6 +357,24 @@ export const ItineraryCard = ({ plan, onReset }: ItineraryCardProps) => {
               {meta}
             </AppText>
           ) : null}
+
+          {/* The promise of the whole app, stated up front rather than left for
+              the reader to infer from the crowd dots further down. */}
+          {plan.crowdSummary ? (
+            <View className="mt-3.5 flex-row gap-2.5 rounded-2xl bg-accent-soft px-3.5 py-3">
+              <Icon
+                name="users"
+                size={13}
+                className="mt-0.5 text-accent-soft-foreground"
+              />
+              <AppText
+                className="flex-1 text-[12.5px] leading-[18px] text-accent-soft-foreground"
+                maxFontSizeMultiplier={1.4}
+              >
+                {plan.crowdSummary}
+              </AppText>
+            </View>
+          ) : null}
         </View>
 
         <Separator />
@@ -337,6 +392,53 @@ export const ItineraryCard = ({ plan, onReset }: ItineraryCardProps) => {
             />
           ))}
         </View>
+
+        {/* What the plan gave up, and what it swapped in. Showing the trade
+            openly is the difference between a recommendation and a nudge the
+            traveller cannot check. */}
+        {plan.avoided.length > 0 && (
+          <>
+            <Separator />
+            <View className="gap-3.5 px-5 py-4">
+              <DisplayText size="sm" className="text-muted uppercase">
+                Routed around
+              </DisplayText>
+
+              {plan.avoided.map((spot, index) => (
+                <View key={`${spot.name}-${index}`} className="gap-1">
+                  <View className="flex-row items-center gap-2">
+                    <Icon name="slash" size={11} className="text-danger" />
+                    <AppText
+                      className="flex-1 text-[14px] font-medium text-foreground/60 line-through"
+                      maxFontSizeMultiplier={1.3}
+                    >
+                      {spot.name}
+                    </AppText>
+                  </View>
+
+                  {spot.reason ? (
+                    <AppText
+                      className="pl-[19px] text-[12.5px] leading-[18px] text-muted"
+                      maxFontSizeMultiplier={1.4}
+                    >
+                      {spot.reason}
+                    </AppText>
+                  ) : null}
+
+                  <View className="flex-row items-center gap-1.5 pl-[19px]">
+                    <Icon name="arrow-right" size={11} className="text-accent" />
+                    <AppText
+                      className="flex-1 text-[12.5px] font-medium text-accent"
+                      maxFontSizeMultiplier={1.3}
+                    >
+                      {spot.insteadGo}
+                    </AppText>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </>
+        )}
 
         {plan.tips.length > 0 && (
           <>
@@ -362,31 +464,36 @@ export const ItineraryCard = ({ plan, onReset }: ItineraryCardProps) => {
 
         <Separator />
 
-        {/* Provenance — the plan is only as good as what we read, so say what
-            that was and make the source one tap away. */}
+        {/* Provenance — the plan is only as good as what we read. The line
+            itself opens the video, which keeps the source one tap away without
+            spending a button on it. */}
         <View className="px-5 py-4">
-          <AppText
-            className="mb-3 text-[12px] text-foreground/50"
-            maxFontSizeMultiplier={1.2}
+          <Pressable
+            onPress={openVideo}
+            hitSlop={8}
+            className="mb-3 flex-row items-center gap-1.5 self-start"
+            accessibilityRole="link"
+            accessibilityLabel="Open the source video on YouTube"
           >
-            {`Read ${plan.source.cueCount} transcript lines${
-              plan.source.chapterCount
-                ? ` and ${plan.source.chapterCount} chapters`
-                : ''
-            }`}
-          </AppText>
+            <Icon name="youtube" size={12} className="text-foreground/50" />
+            <AppText
+              className="text-[12px] text-foreground/50"
+              maxFontSizeMultiplier={1.2}
+            >
+              {`Read ${plan.source.cueCount} transcript lines${
+                plan.source.chapterCount
+                  ? ` and ${plan.source.chapterCount} chapters`
+                  : ''
+              }`}
+            </AppText>
+          </Pressable>
 
           <View className="flex-row gap-2.5">
-            <Button
-              size="sm"
-              variant="secondary"
-              onPress={openVideo}
-              className="flex-1"
-            >
+            <Button size="sm" onPress={openMap} className="flex-1">
               {/* Each variant tints its own label, so the icon has to match it
                   or the button reads as two colours. */}
-              <Icon name="play" size={13} className="text-accent" />
-              <Button.Label>Watch source</Button.Label>
+              <Icon name="map" size={13} className="text-accent-foreground" />
+              <Button.Label>View my plan</Button.Label>
             </Button>
             <Button size="sm" variant="ghost" onPress={onReset}>
               <Icon name="rotate-ccw" size={13} className="text-foreground" />

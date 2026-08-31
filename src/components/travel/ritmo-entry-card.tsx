@@ -8,6 +8,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
+import { useTravelSession } from '../../contexts/travel-session-context';
 import { useMountProgress } from '../../helpers/hooks/use-mount-progress';
 import { SPRING } from '../../helpers/travel/motion';
 import { AppText } from '../app-text';
@@ -15,8 +16,9 @@ import { DisplayText, Icon } from './display-text';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export const WayfareEntryCard = () => {
+export const RitmoEntryCard = () => {
   const router = useRouter();
+  const { hasOnboarded } = useTravelSession();
   const enter = useMountProgress();
   const pressed = useSharedValue(0);
   const [accent, accentHover] = useThemeColor(['accent', 'accent-hover']);
@@ -33,10 +35,27 @@ export const WayfareEntryCard = () => {
     ],
   }));
 
+  /**
+   * The flow's front door. First run goes through onboarding, which is what
+   * every later plan is built against; once there is a profile the card goes
+   * straight to the planner rather than asking the same questions again.
+   */
+  const start = () => {
+    if (hasOnboarded) {
+      router.push('/travel');
+      return;
+    }
+
+    router.push({
+      pathname: '/showcases/travel-onboarding',
+      params: { flow: 'ritmo' },
+    });
+  };
+
   return (
     <AnimatedPressable
       style={rStyle}
-      onPress={() => router.push('/travel')}
+      onPress={start}
       onPressIn={() => {
         pressed.value = 1;
       }}
@@ -44,7 +63,7 @@ export const WayfareEntryCard = () => {
         pressed.value = 0;
       }}
       accessibilityRole="button"
-      accessibilityLabel="Wayfare — turn a travel video into a route"
+      accessibilityLabel="Ritmo — plan a trip that skips the crowds"
       className="overflow-hidden rounded-3xl"
     >
       <LinearGradient
@@ -54,25 +73,27 @@ export const WayfareEntryCard = () => {
       >
         <View className="gap-1 p-5">
           <View className="mb-1 flex-row items-center gap-2">
-            <Icon name="map" size={14} className="text-accent-foreground" />
+            <Icon name="users" size={14} className="text-accent-foreground" />
             <AppText
               className="text-[12px] font-medium tracking-wider text-accent-foreground/75"
               maxFontSizeMultiplier={1.2}
             >
-              NEW
+              LESS CROWDED TRAVEL
             </AppText>
           </View>
 
           <View className="flex-row items-end gap-4">
             <View className="flex-1">
               <DisplayText size="lg" className="text-accent-foreground">
-                Wayfare
+                Ritmo
               </DisplayText>
               <AppText
                 className="mt-1 text-[14px] leading-[19px] text-accent-foreground/80"
                 maxFontSizeMultiplier={1.3}
               >
-                Paste a travel vlog, get a day-by-day route.
+                {hasOnboarded
+                  ? 'Send a travel vlog, get a route around the crowds.'
+                  : 'Answer three questions, then send a travel vlog.'}
               </AppText>
             </View>
 

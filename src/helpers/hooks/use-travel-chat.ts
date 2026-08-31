@@ -5,6 +5,7 @@
 
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTravelSession } from '../../contexts/travel-session-context';
 import { generatePlan } from '../travel/plan-generator';
 import { fetchTranscript } from '../travel/serpapi';
 import {
@@ -41,6 +42,8 @@ const FAILURE_HOLD_MS = 620;
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export function useTravelChat() {
+  const { profile, setActivePlan } = useTravelSession();
+
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [stages, setStages] = useState<Stage[] | null>(null);
   const [isBusy, setIsBusy] = useState(false);
@@ -128,13 +131,20 @@ export function useTravelChat() {
 
         failedStage = 'plan';
         advance('plan', 'active');
-        const plan = await generatePlan(transcript, controller.signal);
+        const plan = await generatePlan(
+          transcript,
+          profile ?? undefined,
+          controller.signal
+        );
         advance('plan', 'done');
         await wait(STAGE_BEAT_MS);
 
         if (!mountedRef.current || controller.signal.aborted) return;
 
         setStages(null);
+        // Published to the session so the map screen can read it without the
+        // plan having to travel through navigation params.
+        setActivePlan(plan);
         push({
           id: nextId(),
           role: 'assistant',
@@ -173,7 +183,7 @@ export function useTravelChat() {
         }
       }
     },
-    [isBusy, advance, push]
+    [isBusy, advance, push, profile, setActivePlan]
   );
 
   const reset = useCallback(() => {
@@ -182,7 +192,8 @@ export function useTravelChat() {
     setMessages([]);
     setStages(null);
     setIsBusy(false);
-  }, []);
+    setActivePlan(null);
+  }, [setActivePlan]);
 
   return { messages, stages, isBusy, submit, reset };
 }

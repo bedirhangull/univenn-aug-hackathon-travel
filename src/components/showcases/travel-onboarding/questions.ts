@@ -136,3 +136,20 @@ export const railLabelFor = (options: Option[], id: OptionId): string => {
   const option = options.find((entry) => entry.id === id);
   return option?.railLabel ?? option?.label ?? String(id);
 };
+
+/** The plain label, for prose and prompts where rail shorthand reads oddly. */
+export const labelFor = (options: Option[], id: OptionId): string =>
+  options.find((entry) => entry.id === id)?.label ?? String(id);
+
+/**
+ * The chosen options as plain labels, with the "none of these" answer dropped.
+ * That answer means *no* constraint, so downstream it has to be an empty list
+ * rather than a constraint named "No allergies".
+ */
+export const constraintLabels = (
+  options: Option[],
+  selected: Set<OptionId>
+): string[] =>
+  options
+    .filter((option) => selected.has(option.id) && !option.isExclusive)
+    .map((option) => option.label);

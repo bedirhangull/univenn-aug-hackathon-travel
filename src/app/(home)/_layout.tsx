@@ -112,9 +112,10 @@ export default function Layout() {
             headerTitle: _renderTitle,
           }}
         />
+        <Stack.Screen name="travel/index" options={{ headerTitle: 'Ritmo' }} />
         <Stack.Screen
-          name="travel/index"
-          options={{ headerTitle: 'Wayfare' }}
+          name="travel/map"
+          options={{ headerTitle: 'Your route' }}
         />
         <Stack.Screen
           name="components/index"

@@ -35,6 +35,7 @@ import {
 } from 'react-native-keyboard-controller';
 import '../../global.css';
 import { AppThemeProvider } from '../contexts/app-theme-context';
+import { TravelSessionProvider } from '../contexts/travel-session-context';
 
 SplashScreen.setOptions({
   duration: 300,
@@ -75,7 +76,9 @@ function AppContent() {
           },
         }}
       >
-        <Slot />
+        <TravelSessionProvider>
+          <Slot />
+        </TravelSessionProvider>
       </HeroUINativeProvider>
     </AppThemeProvider>
   );

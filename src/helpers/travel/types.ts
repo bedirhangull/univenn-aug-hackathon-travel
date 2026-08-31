@@ -7,15 +7,39 @@
 
 export type PlaceKind = 'sight' | 'food' | 'stay' | 'activity' | 'transit';
 
+/**
+ * How busy a stop is. The whole point of the app is to move people down this
+ * scale, so it is a required field rather than an optional annotation.
+ */
+export type CrowdLevel = 'quiet' | 'moderate' | 'busy';
+
 export type PlanPlace = {
   name: string;
   kind: PlaceKind;
+  crowdLevel: CrowdLevel;
+  /**
+   * The overcrowded landmark this stop stands in for. Present on the
+   * substitutions, absent on stops that were never a trade-off.
+   */
+  alternativeTo?: string;
+  /** Approximate coordinates, used to put the stop on the map. */
+  lat?: number;
+  lng?: number;
   /** One short line on why this place is worth the stop. */
   note?: string;
   /** Human hint like `Morning` or `After sunset`, never a hard clock time. */
   timeHint?: string;
   /** Where in the source video this came from, e.g. `2:24`. */
   sourceTimestamp?: string;
+};
+
+/** A famous spot the plan deliberately skips, and what it sends you to instead. */
+export type AvoidedSpot = {
+  name: string;
+  /** Why it is a problem — crowding, local pressure, timed entry queues. */
+  reason: string;
+  /** The stop in this plan that replaces it. */
+  insteadGo: string;
 };
 
 export type PlanDay = {
@@ -39,11 +63,29 @@ export type TravelPlan = {
   durationLabel: string;
   bestSeason?: string;
   budgetLabel?: string;
+  /** One line on how this route sits against the crowds. */
+  crowdSummary?: string;
   days: PlanDay[];
+  /** The overcrowded spots this route routes around. */
+  avoided: AvoidedSpot[];
   tips: string[];
   source: PlanSource;
   /** `outline` means no LLM key was configured — chapters only, no synthesis. */
   generatedBy: 'ai' | 'outline';
+};
+
+/**
+ * What the onboarding flow learned about the traveller. Stored as human labels
+ * rather than option ids so the plan prompt can use it directly, and so it does
+ * not couple the pipeline to the onboarding screen's data module.
+ */
+export type TravelerProfile = {
+  companion?: string;
+  kidAges: string[];
+  accessNeeds: string[];
+  allergies: string[];
+  diets: string[];
+  completedAt: number;
 };
 
 // -- Transcript ---------------------------------------------------------------
