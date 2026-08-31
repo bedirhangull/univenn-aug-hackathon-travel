@@ -20,6 +20,7 @@ import HomeThemesDark from '../../../assets/images/home-themes-dark.png';
 import HomeThemesLight from '../../../assets/images/home-themes-light.png';
 import { AppText } from '../../components/app-text';
 import { ScreenScrollView } from '../../components/screen-scroll-view';
+import { WayfareEntryCard } from '../../components/travel/wayfare-entry-card';
 import { useAppTheme } from '../../contexts/app-theme-context';
 import { COMPONENTS } from '../../helpers/data/components';
 
@@ -164,6 +165,7 @@ export default function App() {
         v1.0.7
       </AppText>
       <View className="gap-6">
+        <WayfareEntryCard />
         {cards.map((card, index) => (
           <HomeCard
             key={card.title}

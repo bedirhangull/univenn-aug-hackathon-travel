@@ -113,6 +113,10 @@ export default function Layout() {
           }}
         />
         <Stack.Screen
+          name="travel/index"
+          options={{ headerTitle: 'Wayfare' }}
+        />
+        <Stack.Screen
           name="components/index"
           options={{ headerTitle: 'Components' }}
         />
