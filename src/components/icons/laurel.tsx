@@ -1,31 +1,37 @@
 import React from 'react';
-import Svg, { Ellipse, Path } from 'react-native-svg';
+import Svg, { G, Path } from 'react-native-svg';
 import { withUniwind } from 'uniwind';
 import type { IconProps } from '../../helpers/types/icons';
 
-/** Leaves growing on the outer side of the stem. */
+/** A single leaf, pointed at both ends, centred on the origin. */
+const LEAF = 'M-3.6 0 Q0 -1.9 3.6 0 Q0 1.9 -3.6 0 Z';
+
+/**
+ * Leaves on the outer edge of the curve. They lean up and to the left, away
+ * from the stem, which runs down their right-hand side.
+ */
 const OUTER_LEAVES: [number, number][] = [
-  [13.7, 18.6],
-  [11.1, 14.8],
-  [8.7, 11.1],
-  [6.6, 7.4],
-  [4.9, 4.0],
+  [13.2, 18.4],
+  [10.2, 15.2],
+  [7.7, 11.4],
+  [5.8, 7.0],
 ];
 
-/** Shorter leaves growing on the inner side of the stem. */
+/** Leaves on the inner edge, leaning the opposite way for the same reason. */
 const INNER_LEAVES: [number, number][] = [
-  [18.2, 20.0],
-  [15.6, 16.2],
-  [13.2, 12.5],
-  [11.1, 8.8],
+  [18.0, 20.4],
+  [15.0, 17.2],
+  [12.5, 13.4],
+  [10.6, 9.0],
 ];
 
 /**
  * Laurel icon component - React Native SVG implementation
  * Wrapped with withUniwind to enable className-based styling
  *
- * Renders a single laurel branch. Mirror it with a `scaleX: -1` transform to
- * get the matching branch on the opposite side of an award badge.
+ * Renders a single laurel branch, growing from the bottom right to the top
+ * left. Mirror it with a `scaleX: -1` transform to get the matching branch on
+ * the other side of an award badge.
  */
 const LaurelIconComponent: React.FC<IconProps> = ({
   size = 20,
@@ -34,34 +40,26 @@ const LaurelIconComponent: React.FC<IconProps> = ({
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
       <Path
-        d="M17.5 21.5C12 17 8 11 6.5 3.5"
+        d="M19 22C13 18 8.5 12 7 3"
         stroke={color}
-        strokeWidth={1.2}
+        strokeWidth={1}
         strokeLinecap="round"
         fill="none"
       />
-      {OUTER_LEAVES.map(([cx, cy]) => (
-        <Ellipse
-          key={`outer-${cx}-${cy}`}
-          cx={cx}
-          cy={cy}
-          rx={2.2}
-          ry={1.05}
-          fill={color}
-          transform={`rotate(-55 ${cx} ${cy})`}
-        />
+      {OUTER_LEAVES.map(([x, y]) => (
+        <G key={`outer-${x}-${y}`} transform={`translate(${x} ${y}) rotate(45)`}>
+          <Path d={LEAF} fill={color} />
+        </G>
       ))}
-      {INNER_LEAVES.map(([cx, cy]) => (
-        <Ellipse
-          key={`inner-${cx}-${cy}`}
-          cx={cx}
-          cy={cy}
-          rx={1.7}
-          ry={0.85}
-          fill={color}
-          transform={`rotate(-15 ${cx} ${cy})`}
-        />
+      {INNER_LEAVES.map(([x, y]) => (
+        <G key={`inner-${x}-${y}`} transform={`translate(${x} ${y}) rotate(-55)`}>
+          <Path d={LEAF} fill={color} />
+        </G>
       ))}
+      {/* The tip leaf closes the branch off, standing almost upright. */}
+      <G transform="translate(7 3.4) rotate(-80)">
+        <Path d={LEAF} fill={color} />
+      </G>
     </Svg>
   );
 };
@@ -72,7 +70,7 @@ const LaurelIconComponent: React.FC<IconProps> = ({
  * Usage examples:
  * ```tsx
  * // Using className props:
- * <LaurelIcon colorClassName="accent-foreground" />
+ * <LaurelIcon colorClassName="accent-accent" />
  *
  * // Using direct props:
  * <LaurelIcon size={64} color="#ff6344" />
